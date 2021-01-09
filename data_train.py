@@ -1,4 +1,4 @@
-from stock_prediction import load_data
+import yahoo_fin.stock_info as si
 import os
 import datetime
 import IPython
@@ -21,7 +21,7 @@ index_as_date = True
 interval = "1d"
 
 #Import data from Yahoo Finance
-df = load_data(ticker,start_date,end_date,index_as_date,interval)
+df = si.get_data(ticker,start_date,end_date,index_as_date,interval)
 date_time = pd.to_datetime(df.index, format='%d-%m-%Y %H:%M:%S')
 
 #Plot the data
