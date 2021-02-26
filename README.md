@@ -4,7 +4,7 @@ Program that performs time series forecasting of publicly listed stock prices wi
 To run, adjust the variables to your liking in data_train.py and run in an IDE.
 
 NOTES:
-For better results than in the example, consider adding more features to the training data. Some suggestions are index price data (S&P500,...) or techincal indicators (MACD, RSI), or price data of competitors stocks.
+A good selection of features is something I am working on. I have found that using a variety, but not too many, technical indicators with TAlib works well.
 
 
 
