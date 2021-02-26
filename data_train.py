@@ -148,14 +148,14 @@ ds = tf.keras.preprocessing.timeseries_dataset_from_array(
         shuffle = True,
         batch_size = 32)
 
-#early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5, mode='min')
-predictions = multi_conv_model.predict(ds, verbose = 0)#callbacks=[early_stopping])
+early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5, mode='min')
+predictions = multi_conv_model.predict(ds, verbose = 0),  callbacks=[early_stopping])
 j = df.columns.get_loc('adjclose')
-count_predictions = tf.reshape(predictions[0,:,j],[1,OUT_STEPS]).numpy()*test_std[j]+test_mean[j]
+count_predictions = tf.reshape(predictions[0,:,j],[1,OUT_STEPS]).numpy()*training_std[j]+training_mean[j]
 
 
 plt.figure(figsize = (12, 8))
-plt.plot(test_df['adjclose'][-IN_STEPS:].apply(lambda x: x*test_std[j] + test_mean[j]), label='Inputs', marker='.', zorder= -10)
+plt.plot(test_df['adjclose'][-IN_STEPS:].apply(lambda x: x*training_std[j] + training_mean[j]), label='Inputs', marker='.', zorder= -10)
 prediction_indices = pd.date_range(start= test_df.index[-1] + pd.DateOffset(1), periods = OUT_STEPS, freq = 'B')
 plt.scatter(prediction_indices, count_predictions,
                   marker='X', edgecolors='k', label='Predictions',
