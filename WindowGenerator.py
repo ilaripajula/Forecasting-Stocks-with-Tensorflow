@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
+from sklearn.metrics import mean_squared_error
 
 """
 WindowGenerator class. This class can:
@@ -45,7 +46,10 @@ class WindowGenerator:
                 f'Total window size: {self.total_window_size}',
                 f'Input indices: {self.input_indices}',
                 f'Label indices: {self.label_indices}',
-                f'Label column name(s): {self.label_columns}'])
+                f'Label column name(s): {self.label_columns}',
+                f'Training Data Size: {len(self.train_df)}',
+                f'Validation Data Size: {len(self.val_df)}',
+                f'Testing Data Size: {len(self.test_df)}',])
 
 def split_window(self, features):
     inputs = features[:, self.input_slice, :]
@@ -63,16 +67,17 @@ def split_window(self, features):
 WindowGenerator.split_window = split_window
 
 
-def plot(self, model=None, plot_col='adjclose', max_subplots=3):
+def plot(self, model=None, plot_col ='adjclose', max_subplots=3):
   inputs, labels = self.example
   plt.figure(figsize=(12, 8))
+  plt.suptitle('VALIDATION')
   plot_col_index = self.column_indices[plot_col]
   max_n = min(max_subplots, len(inputs))
   for n in range(max_n):
     plt.subplot(3, 1, n+1)
     plt.ylabel(f'{plot_col} [normed]')
     plt.plot(self.input_indices, inputs[n, :, plot_col_index],
-             label='Inputs', marker='.', zorder=-10)
+             label='Features', marker='.', zorder=-10)
 
     if self.label_columns:
       label_col_index = self.label_columns_indices.get(plot_col, None)
@@ -89,14 +94,15 @@ def plot(self, model=None, plot_col='adjclose', max_subplots=3):
       plt.scatter(self.label_indices, predictions[n, :, label_col_index],
                   marker='X', edgecolors='k', label='Predictions',
                   c='#ff7f0e', s=64)
-
+      print('ERROR: ' + str(mean_squared_error(labels[n, :, label_col_index], predictions[n, :, label_col_index])))
+      
     if n == 0:
       plt.legend()
 
-  plt.xlabel('Time [h]')
-
+    plt.xlabel('Time [days]')
+    
 WindowGenerator.plot = plot
-
+  
 
 """
 This make_dataset method will take a time series DataFrame and convert it to a
@@ -149,16 +155,9 @@ WindowGenerator.example = example
 # =============================================================================
 # Fit the training data
 # =============================================================================
-
-MAX_EPOCHS = 20
-def compile_and_fit(model, window, patience=2):
+MAX_EPOCHS = 100
+def compile_and_fit(model, window, patience):
   early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=patience, mode='min')
   model.compile(loss=tf.losses.MeanSquaredError(), optimizer=tf.optimizers.Adam(), metrics=[tf.metrics.MeanAbsoluteError()])
   history = model.fit(window.train, epochs=MAX_EPOCHS, validation_data=window.val, callbacks=[early_stopping])
-  return history
-
-def test(model, window, patience=2):
-  early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=patience, mode='min')
-  model.compile(loss=tf.losses.MeanSquaredError(), optimizer=tf.optimizers.Adam(), metrics=[tf.metrics.MeanAbsoluteError()])
-  history = model.fit(window.test, epochs=MAX_EPOCHS, validation_data=window.val, callbacks=[early_stopping])
   return history
